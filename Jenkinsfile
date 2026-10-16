@@ -4,14 +4,15 @@ pipeline {
     stages {
         stage('Build and test') {
             steps {
+                sh 'java -version'
                 sh 'mvn -version'
                 sh 'mvn -B clean verify'
             }
-            post {
-                always {
-                    junit 'maven-hello/target/surefire-reports/*.xml'
-                }
-            }
+            // post {
+            //     always {
+            //         junit 'maven-hello/target/surefire-reports/*.xml'
+            //     }
+            // }
         }
 
         stage('Save artifact') {
