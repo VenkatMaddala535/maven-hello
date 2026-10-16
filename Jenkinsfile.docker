@@ -1,0 +1,31 @@
+pipeline {
+    agent {
+        docker {
+            image 'maven:3.9.11-eclipse-temurin-21'
+            label 'docker'
+            args '-e MAVEN_CONFIG=/tmp/.m2'
+        }
+    }
+
+    stages {
+        // Use a writable dependency cache inside the checked-out project.
+        stage('Build and test') {
+            steps {
+                dir('maven-hello') {
+                    sh 'mvn -B -Dmaven.repo.local=.m2/repository clean verify'
+                }
+            }
+            post {
+                always {
+                    junit 'maven-hello/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Save artifact') {
+            steps {
+                archiveArtifacts artifacts: 'maven-hello/target/*.jar', fingerprint: true
+            }
+        }
+    }
+}

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebServer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Jenkins Lab - Maven Hello</a> &gt; <a href="index.source.html" class="el_package">com.example.jenkins</a> &gt; <span class="el_source">WebServer.java</span></div><h1>WebServer.java</h1><pre class="source lang-java linenums">package com.example.jenkins;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+public final class WebServer {
+<span class="fc" id="L12">    private static final Map&lt;String, String&gt; CONTENT_TYPES = Map.of(</span>
+            &quot;/&quot;, &quot;text/html; charset=utf-8&quot;,
+            &quot;/style.css&quot;, &quot;text/css; charset=utf-8&quot;,
+            &quot;/app.js&quot;, &quot;text/javascript; charset=utf-8&quot;);
+
+    private WebServer() { }
+
+    public static HttpServer create(String host, int port) throws IOException {
+<span class="fc" id="L20">        HttpServer server = HttpServer.create(new InetSocketAddress(host, port), 0);</span>
+<span class="fc" id="L21">        server.createContext(&quot;/&quot;, WebServer::handle);</span>
+<span class="fc" id="L22">        return server;</span>
+    }
+
+    private static void handle(HttpExchange exchange) throws IOException {
+<span class="fc" id="L26">        try (exchange) {</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">            if (!&quot;GET&quot;.equals(exchange.getRequestMethod())) {</span>
+<span class="fc" id="L28">                exchange.getResponseHeaders().set(&quot;Allow&quot;, &quot;GET&quot;);</span>
+<span class="fc" id="L29">                respond(exchange, 405, &quot;text/plain; charset=utf-8&quot;, &quot;Method not allowed&quot;);</span>
+<span class="fc" id="L30">                return;</span>
+            }
+<span class="fc" id="L32">            String path = exchange.getRequestURI().getPath();</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">            if (&quot;/health&quot;.equals(path)) {</span>
+<span class="fc" id="L34">                respond(exchange, 200, &quot;application/json&quot;, &quot;{\&quot;status\&quot;:\&quot;ok\&quot;,\&quot;stack\&quot;:\&quot;maven\&quot;}&quot;);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            } else if (&quot;/api/greet&quot;.equals(path)) {</span>
+                try {
+<span class="fc" id="L37">                    respond(exchange, 200, &quot;text/plain; charset=utf-8&quot;,</span>
+<span class="fc" id="L38">                            Greeting.message(queryName(exchange.getRequestURI().getRawQuery())));</span>
+<span class="fc" id="L39">                } catch (IllegalArgumentException error) {</span>
+<span class="fc" id="L40">                    respond(exchange, 400, &quot;text/plain; charset=utf-8&quot;, &quot;Please use a valid name with 80 characters or fewer.&quot;);</span>
+<span class="fc" id="L41">                }</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            } else if (CONTENT_TYPES.containsKey(path)) {</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">                String resource = &quot;/public&quot; + (&quot;/&quot;.equals(path) ? &quot;/index.html&quot; : path);</span>
+<span class="fc" id="L44">                try (var stream = WebServer.class.getResourceAsStream(resource)) {</span>
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">                    if (stream == null) {</span>
+<span class="nc" id="L46">                        throw new IOException(&quot;Missing packaged website resource: &quot; + resource);</span>
+                    }
+<span class="fc" id="L48">                    respond(exchange, 200, CONTENT_TYPES.get(path),</span>
+<span class="fc" id="L49">                            new String(stream.readAllBytes(), StandardCharsets.UTF_8));</span>
+                }
+<span class="fc" id="L51">            } else {</span>
+<span class="fc" id="L52">                respond(exchange, 404, &quot;text/plain; charset=utf-8&quot;, &quot;Not found&quot;);</span>
+            }
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        }</span>
+<span class="fc" id="L55">    }</span>
+
+    private static String queryName(String query) {
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (query != null) {</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            for (String pair : query.split(&quot;&amp;&quot;)) {</span>
+<span class="fc" id="L60">                String[] parts = pair.split(&quot;=&quot;, 2);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">                if (&quot;name&quot;.equals(URLDecoder.decode(parts[0], StandardCharsets.UTF_8))) {</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                    return parts.length == 2 ? URLDecoder.decode(parts[1], StandardCharsets.UTF_8) : &quot;&quot;;</span>
+                }
+            }
+        }
+<span class="fc" id="L66">        return &quot;&quot;;</span>
+    }
+
+    private static void respond(HttpExchange exchange, int status, String type, String body) throws IOException {
+<span class="fc" id="L70">        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);</span>
+<span class="fc" id="L71">        exchange.getResponseHeaders().set(&quot;Content-Type&quot;, type);</span>
+<span class="fc" id="L72">        exchange.getResponseHeaders().set(&quot;X-Content-Type-Options&quot;, &quot;nosniff&quot;);</span>
+<span class="fc" id="L73">        exchange.sendResponseHeaders(status, bytes.length);</span>
+<span class="fc" id="L74">        exchange.getResponseBody().write(bytes);</span>
+<span class="fc" id="L75">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
