@@ -4,6 +4,7 @@ pipeline {
     stages {
         stage('Build and test') {
             steps {
+                sh 'mvn -version'
                 sh 'mvn -B clean verify'
             }
             post {
