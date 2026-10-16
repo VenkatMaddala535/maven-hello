@@ -2,6 +2,13 @@ pipeline {
     agent {label 'pipeline-agent'}
 
     stages {
+
+        stage('Check Java') {
+            steps {
+                sh 'java -version'
+                sh 'mvn -version'
+            }
+        }
         stage('Build and test') {
             steps {
                 sh '/usr/bin/java -version'
