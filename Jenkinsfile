@@ -5,8 +5,12 @@ pipeline {
 
         stage('Check Java') {
             steps {
-                sh 'java -version'
-                sh 'mvn -version'
+                sh '''
+                echo "JAVA_HOME=$JAVA_HOME"
+                which java
+                which mvn
+                mvn -version
+                '''
             }
         }
         stage('Build and test') {
