@@ -11,6 +11,7 @@ pipeline {
 
                     java -version
                     mvn -version
+                    mvn -B test
                     mvn -B clean verify
                 '''
             }
