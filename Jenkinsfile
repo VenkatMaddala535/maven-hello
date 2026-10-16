@@ -1,8 +1,8 @@
+
 pipeline {
-    agent {label 'pipeline-agent'}
+    agent { label 'pipeline-agent' }
 
     stages {
-
         stage('Build and Test') {
             steps {
                 sh '''
@@ -14,18 +14,18 @@ pipeline {
                     mvn -B clean verify
                 '''
             }
-
             post {
                 always {
                     junit allowEmptyResults: true,
-                        testResults: 'target/surefire-reports/*.xml'
+                          testResults: 'target/surefire-reports/*.xml'
                 }
             }
         }
 
         stage('Save artifact') {
             steps {
-                archiveArtifacts artifacts: 'maven-hello/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'target/*.jar',
+                                 fingerprint: true
             }
         }
     }
