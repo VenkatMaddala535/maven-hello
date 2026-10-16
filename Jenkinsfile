@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Build and test') {
             steps {
-                sh 'java -version'
+                sh '/usr/bin/java -version'
                 sh 'mvn -version'
                 sh 'mvn -B clean verify'
             }
