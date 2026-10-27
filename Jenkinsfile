@@ -30,12 +30,16 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis'){
-            steps{
-                withSonarQubeEnv('SonarQube'){
-                    script{
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    script {
                         def scannerHome = tool 'SonarScanner'
-                        sh "${scannerHome}/bin/sonar-scanner"
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=maven-hello \
+                            -Dsonar.sources=src/main
+                        """
                     }
                 }
             }
