@@ -96,5 +96,34 @@ pipeline {
                 }
             }
         }
+
+        stage('Update GitOps Repository') {
+            steps {
+                dir('gitops') {
+                    git branch: 'main',
+                        credentialsId: 'gitops-write-cred',
+                        url: 'https://github.com/VenkatMaddala535/maven-hello-gitops.git'
+
+                    sh '''
+                        set -eu
+
+                        git config user.name "VenkatMaddala535"
+                        git config user.email "venkatmaddala777@gmail.com"
+
+                        sed -i "s|image: venkatmaddala/maven-hello:.*|image: venkatmaddala/maven-hello:${BUILD_NUMBER}|" deployment.yaml
+
+                        git add deployment.yaml
+
+                        if git diff --cached --quiet; then
+                            echo "No GitOps changes to commit"
+                        else
+                            git commit -m "Deploy maven-hello build ${BUILD_NUMBER}"
+                            git push origin HEAD:main
+                        fi
+                    '''
+                }
+            }
+        }
+        
     }
 }
